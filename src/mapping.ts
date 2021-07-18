@@ -30,7 +30,7 @@ export function handleDepositTransferred(event: DepositTransferred): void {
 }
 
 export function handleIncentiveCreated(event: IncentiveCreated): void {  
-  let incentiveId = calculateIncentiveId(event.params)
+  let incentiveId = _calculateIncentiveId(event.params)
   let incentive = new Incentive(incentiveId)
 
   incentive.rewardToken = event.params.rewardToken
@@ -43,20 +43,6 @@ export function handleIncentiveCreated(event: IncentiveCreated): void {
   incentive.save()
 }
 
-function calculateIncentiveId(params: IncentiveCreated__Params): string {
-
-  // the ethereum.encode function seems to be broken in this version so we have to manually encode the ABI
-  let rewardToken = params.rewardToken.toHexString().slice(2).padStart(64, "0")
-  let pool = params.pool.toHexString().slice(2).padStart(64, "0")
-  let startTime = params.startTime.toHexString().slice(2).padStart(64, "0")
-  let endTime = params.endTime.toHexString().slice(2).padStart(64, "0")
-  let refundee = params.refundee.toHexString().slice(2).padStart(64, "0")
-
-  let abiEncoded = rewardToken + pool + startTime + endTime + refundee
-
-  return crypto.keccak256(Bytes.fromHexString(abiEncoded)).toHexString()
-}
-
 export function handleIncentiveEnded(event: IncentiveEnded): void {
   store.remove("Incentive", event.params.incentiveId.toHexString())
 }
@@ -66,3 +52,25 @@ export function handleIncentiveEnded(event: IncentiveEnded): void {
 // export function handleTokenStaked(event: TokenStaked): void {}
 
 // export function handleTokenUnstaked(event: TokenUnstaked): void {}
+
+//
+// Helper functions
+//
+
+function _calculateIncentiveId(params: IncentiveCreated__Params): string {
+
+  // the ethereum.encode function seems to be broken in this version so we have to manually encode the ABI
+  let rewardToken = _abiPad(params.rewardToken.toHexString())
+  let pool = _abiPad(params.pool.toHexString())
+  let startTime = _abiPad(params.startTime.toHexString())
+  let endTime = _abiPad(params.endTime.toHexString())
+  let refundee = _abiPad(params.refundee.toHexString())
+
+  let abiEncoded = rewardToken + pool + startTime + endTime + refundee
+
+  return crypto.keccak256(Bytes.fromHexString(abiEncoded)).toHexString()
+}
+
+function _abiPad(value: string): string {
+  return value.slice(2).padStart(64, "0")
+}
