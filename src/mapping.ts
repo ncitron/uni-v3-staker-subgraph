@@ -1,4 +1,4 @@
-import { store } from "@graphprotocol/graph-ts"
+import { Address, Bytes, store, log } from "@graphprotocol/graph-ts"
 import {
   UniswapV3Staker,
   DepositTransferred,
@@ -12,18 +12,17 @@ import { Deposit } from "../generated/schema"
 
 export function handleDepositTransferred(event: DepositTransferred): void {
 
-  if (event.params.newOwner.toHexString() === "0x0000000000000000000000000000000000000000") {
+  if (event.params.newOwner.toHexString() == "0x0000000000000000000000000000000000000000") {
     store.remove("Deposit", event.params.tokenId.toHexString())
     return
   }
-
-  let deposit = Deposit.load(event.params.tokenId.toHexString())
+  
+  let deposit = Deposit.load(event.params.tokenId.toString())
 
   if (deposit == null) {
-    deposit = new Deposit(event.params.tokenId.toHexString())
+    deposit = new Deposit(event.params.tokenId.toString())
   }
 
-  deposit.tokenId = event.params.tokenId.toI32()
   deposit.owner = event.params.newOwner
 
   deposit.save()

@@ -1,5 +1,4 @@
 type Deposit @entity {
   id: ID!
   owner: Bytes!
-  tokenId: Int!
 }
