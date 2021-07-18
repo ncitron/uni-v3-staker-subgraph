@@ -1,6 +1,5 @@
-type ExampleEntity @entity {
+type Deposit @entity {
   id: ID!
-  count: BigInt!
-  tokenId: BigInt! # uint256
-  oldOwner: Bytes! # address
+  owner: Bytes!
+  tokenId: Int!
 }

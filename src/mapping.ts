@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { store } from "@graphprotocol/graph-ts"
 import {
   UniswapV3Staker,
   DepositTransferred,
@@ -8,67 +8,33 @@ import {
   TokenStaked,
   TokenUnstaked
 } from "../generated/UniswapV3Staker/UniswapV3Staker"
-import { ExampleEntity } from "../generated/schema"
+import { Deposit } from "../generated/schema"
 
 export function handleDepositTransferred(event: DepositTransferred): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  if (event.params.newOwner.toHexString() === "0x0000000000000000000000000000000000000000") {
+    store.remove("Deposit", event.params.tokenId.toHexString())
+    return
   }
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+  let deposit = Deposit.load(event.params.tokenId.toHexString())
 
-  // Entity fields can be set based on event parameters
-  entity.tokenId = event.params.tokenId
-  entity.oldOwner = event.params.oldOwner
+  if (deposit == null) {
+    deposit = new Deposit(event.params.tokenId.toHexString())
+  }
 
-  // Entities can be written to the store with `.save()`
-  entity.save()
+  deposit.tokenId = event.params.tokenId.toI32()
+  deposit.owner = event.params.newOwner
 
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.claimReward(...)
-  // - contract.deposits(...)
-  // - contract.endIncentive(...)
-  // - contract.factory(...)
-  // - contract.getRewardInfo(...)
-  // - contract.incentives(...)
-  // - contract.maxIncentiveDuration(...)
-  // - contract.maxIncentiveStartLeadTime(...)
-  // - contract.nonfungiblePositionManager(...)
-  // - contract.onERC721Received(...)
-  // - contract.rewards(...)
-  // - contract.stakes(...)
+  deposit.save()
 }
 
-export function handleIncentiveCreated(event: IncentiveCreated): void {}
+// export function handleIncentiveCreated(event: IncentiveCreated): void {}
 
-export function handleIncentiveEnded(event: IncentiveEnded): void {}
+// export function handleIncentiveEnded(event: IncentiveEnded): void {}
 
-export function handleRewardClaimed(event: RewardClaimed): void {}
+// export function handleRewardClaimed(event: RewardClaimed): void {}
 
-export function handleTokenStaked(event: TokenStaked): void {}
+// export function handleTokenStaked(event: TokenStaked): void {}
 
-export function handleTokenUnstaked(event: TokenUnstaked): void {}
+// export function handleTokenUnstaked(event: TokenUnstaked): void {}
